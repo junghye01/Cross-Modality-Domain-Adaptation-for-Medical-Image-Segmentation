@@ -2,3 +2,4 @@ Synthesis filter=lfs diff=lfs merge=lfs -text
 Segmentation/light_training/* filter=lfs diff=lfs merge=lfs -text
 Segmentation/mamba/build/lib.linux-x86_64-cpython-310/*.so filter=lfs diff=lfs merge=lfs -text
 Segmentation/mamba/build/lib.linux-x86_64-cpython-310/selective_scan_cuda.cpython-310-x86_64-linux-gnu.so filter=lfs diff=lfs merge=lfs -text
+Segmentation/mamba/* filter=lfs diff=lfs merge=lfs -text
