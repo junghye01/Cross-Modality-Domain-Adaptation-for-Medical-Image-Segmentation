@@ -1,5 +1,2 @@
 Synthesis filter=lfs diff=lfs merge=lfs -text
-Segmentation/mamba/assets/* filter=lfs diff=lfs merge=lfs -text
-Segmentation/mamba/benchmarks/* filter=lfs diff=lfs merge=lfs -text
-Segmentation/mamba/build/* filter=lfs diff=lfs merge=lfs -text
-Segmentation/mamba/csrc/* filter=lfs diff=lfs merge=lfs -text
+Segmentation/light_training/* filter=lfs diff=lfs merge=lfs -text
