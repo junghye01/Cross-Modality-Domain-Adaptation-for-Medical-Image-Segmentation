@@ -35,6 +35,7 @@ def convert_nifti_to_dcm(nifti_files, input_dir,output_dir):
             sitk.WriteImage(slice_image, dicom_filename)
 
 
+
 def convert_dcm_to_nifti(input_dir, output_dir, file_prefixes, z_spacing=1.0):
     """
     Convert a series of DICOM images starting with a specific prefix to a single 3D NIfTI file using SimpleITK.
@@ -51,7 +52,7 @@ def convert_dcm_to_nifti(input_dir, output_dir, file_prefixes, z_spacing=1.0):
     # Loop over each prefix
     for prefix in tqdm(file_prefixes, desc='Convert DICOM Images to NIfTI'):
         # List of DICOM files starting with the given prefix
-        prefix=prefix[:-14]
+        prefix = prefix[:-14]
         dicom_files = sorted([f for f in os.listdir(input_dir) if f.startswith(prefix) and f.endswith('.dcm')])
 
         if not dicom_files:
@@ -73,21 +74,28 @@ def convert_dcm_to_nifti(input_dir, output_dir, file_prefixes, z_spacing=1.0):
         # Combine the 2D DICOM slices into a 3D image
         try:
             image_4d = sitk.JoinSeries(images)
-            
-            
+
+            # Check if the image has an additional channel dimension
             if image_4d.GetDimension() == 4:
-                # Convert RGB (4D) to Grayscale (3D)
-                image_array = sitk.GetArrayFromImage(image_4d)  # Convert to numpy array
-                print(f'Original image array shape: {image_array.shape}')  # Output shape: (120, 256, 256, 3)
-                
-                # Convert RGB to Grayscale using luminosity method
-                grayscale_array = np.dot(image_array[...,:3], [0.2989, 0.587, 0.114])  # Shape will become (120, 256, 256)
-                print(f'Converted grayscale image array shape: {grayscale_array.shape}')
-                
+                # Convert to a numpy array
+                image_array = sitk.GetArrayFromImage(image_4d)
+                print(f'Original image array shape: {image_array.shape}')  # Output shape: (120, 256, 256, 1) or (120, 256, 256, 3)
+
+                # Check if the image is single-channel (grayscale) or multi-channel (RGB)
+                if image_array.shape[-1] == 3:  # RGB image
+                    # Convert RGB to Grayscale using luminosity method
+                    grayscale_array = np.dot(image_array[...,:3], [0.2989, 0.587, 0.114])  # Shape will become (120, 256, 256)
+                    print(f'Converted grayscale image array shape: {grayscale_array.shape}')
+                elif image_array.shape[-1] == 1:  # Already grayscale, no conversion needed
+                    grayscale_array = image_array[..., 0]  # Remove the last dimension
+                    print(f'Grayscale image array shape: {grayscale_array.shape}')
+                else:
+                    print(f"Unexpected number of channels in image for prefix '{prefix}': {image_array.shape[-1]}")
+                    continue
+
                 # Create a 3D SimpleITK image from the grayscale array
                 image_3d = sitk.GetImageFromArray(grayscale_array.astype(np.float32))  # Ensure float32 type
 
-                
                 # Set the metadata for the 3D image to preserve spatial information
                 spacing_2d = images[0].GetSpacing()  # Get 2D spacing (x, y)
                 spacing_3d = (spacing_2d[0], spacing_2d[1], z_spacing)  # Extend to 3D spacing (x, y, z)
@@ -125,6 +133,7 @@ def convert_dcm_to_nifti(input_dir, output_dir, file_prefixes, z_spacing=1.0):
 
         except Exception as e:
             print(f"Failed to convert DICOM series with prefix '{prefix}': {e}")
+
 
 
 if __name__=='__main__':
